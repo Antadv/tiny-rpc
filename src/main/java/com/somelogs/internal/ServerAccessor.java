@@ -60,7 +60,9 @@ public class ServerAccessor implements MethodInterceptor {
      */
     public static void addClient(Class<?> client, String serverUrl) {
         Preconditions.checkNotNull(client, "client must be not null");
+        Preconditions.checkState(client.isInterface(), "client must be interface");
         Preconditions.checkArgument(StringUtils.isNotBlank(serverUrl), "server url can't be empty");
+        LOGGER.info("add client[{}] to map", client.getName());
         clientServerMap.put(client, serverUrl);
     }
 
@@ -77,12 +79,13 @@ public class ServerAccessor implements MethodInterceptor {
         String postBody = JsonUtils.object2JSONString(objects[0]);
         Response response;
         try {
-            String requestUrl = clientServerMap.get(o.getClass()) + typeAnnotation.url() + methodAnnotation.url();
+            String requestUrl = clientServerMap.get(o.getClass().getInterfaces()[0])
+                                + typeAnnotation.url() + methodAnnotation.url();
             LOGGER.info("Server accessor request url:" + requestUrl);
             String responseJson = HttpUtils.postJson(requestUrl, postBody);
             response = JsonUtils.readValue(responseJson, method.getGenericReturnType());
         } catch (Exception e) {
-            LOGGER.error("Server accessor request error", e);
+            //LOGGER.error("Server accessor request error", e);
             response = new Response<>();
             response.setCode(ResponseStatus.INTERNAL_SERVER_ERROR.getCode());
             response.setMessage(ResponseStatus.INTERNAL_SERVER_ERROR.getMessage());

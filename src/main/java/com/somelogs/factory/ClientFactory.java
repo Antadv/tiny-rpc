@@ -1,4 +1,4 @@
-package com.somelogs.facotry;
+package com.somelogs.factory;
 
 import com.google.common.base.Preconditions;
 import com.somelogs.client.ClientConfig;

@@ -12,6 +12,9 @@ public class ClientConfig {
      */
     private String clientClassName;
 
+    public ClientConfig() {
+    }
+
     /**
      * client server url
      */
