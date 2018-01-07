@@ -1,5 +1,6 @@
 package com.somelogs.internal;
 
+import com.google.common.base.Preconditions;
 import com.somelogs.annotation.RequestRoute;
 import com.somelogs.model.Response;
 import com.somelogs.model.ResponseStatus;
@@ -7,10 +8,15 @@ import com.somelogs.utils.HttpUtils;
 import com.somelogs.utils.JsonUtils;
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * server accessor
@@ -21,15 +27,46 @@ public class ServerAccessor implements MethodInterceptor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ServerAccessor.class);
 
-    private String SERVER_URL;
+    /**
+     * single instance
+     */
+    private static ServerAccessor INSTANCE;
 
-    public ServerAccessor(String serverUrl) {
-        if (serverUrl.endsWith("/")) {
-            serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
+    /**
+     * map to store client and relevant server url
+     */
+    private static Map<Class, String> clientServerMap = new ConcurrentHashMap<>();
+
+    /**
+     * single mode to generate ServerAccessor instance
+     *
+     * @return single ServerAccessor instance
+     */
+    public static ServerAccessor singleInstance() {
+        Lock lock = new ReentrantLock();
+        lock.lock();
+        try {
+            if (INSTANCE == null) {
+                INSTANCE = new ServerAccessor();
+            }
+        } finally {
+            lock.unlock();
         }
-        this.SERVER_URL = serverUrl;
+        return INSTANCE;
     }
 
+    /**
+     * add new client to map
+     */
+    public static void addClient(Class<?> client, String serverUrl) {
+        Preconditions.checkNotNull(client, "client must be not null");
+        Preconditions.checkArgument(StringUtils.isNotBlank(serverUrl), "server url can't be empty");
+        clientServerMap.put(client, serverUrl);
+    }
+
+    /**
+     * intercept method and request server url
+     */
     @Override
     public Object intercept(Object o, Method method, Object[] objects, MethodProxy methodProxy) throws Throwable {
         RequestRoute methodAnnotation = method.getAnnotation(RequestRoute.class);
@@ -40,7 +77,7 @@ public class ServerAccessor implements MethodInterceptor {
         String postBody = JsonUtils.object2JSONString(objects[0]);
         Response response;
         try {
-            String requestUrl = SERVER_URL + typeAnnotation.url() + methodAnnotation.url();
+            String requestUrl = clientServerMap.get(o.getClass()) + typeAnnotation.url() + methodAnnotation.url();
             LOGGER.info("Server accessor request url:" + requestUrl);
             String responseJson = HttpUtils.postJson(requestUrl, postBody);
             response = JsonUtils.readValue(responseJson, method.getGenericReturnType());

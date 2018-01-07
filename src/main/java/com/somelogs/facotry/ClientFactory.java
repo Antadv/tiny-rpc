@@ -1,7 +1,6 @@
 package com.somelogs.facotry;
 
 import com.google.common.base.Preconditions;
-import com.somelogs.client.BaseClient;
 import com.somelogs.client.ClientConfig;
 import com.somelogs.internal.ServerAccessor;
 import net.sf.cglib.proxy.Enhancer;
@@ -15,28 +14,27 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class ClientFactory {
 
-    private ServerAccessor ACCESSOR;
+    private static final ServerAccessor ACCESSOR = ServerAccessor.singleInstance();
 
-    public ClientFactory(String serverUrl) {
-        ACCESSOR = new ServerAccessor(serverUrl);
-    }
+    private ClientFactory() {}
 
-    public BaseClient create(ClientConfig config) {
+    public static Object create(ClientConfig config) {
         Preconditions.checkNotNull(config, "create client config is null");
         Preconditions.checkArgument(StringUtils.isNotBlank(config.getClientClassName()),
                 "class qualified name is blank when creating client");
         Preconditions.checkArgument(StringUtils.isNotBlank(config.getServerUrl()),
                 "client server url is blank when creating client");
+        String clientClassName = config.getClientClassName();
         Class<?> clientClass;
         try {
-            clientClass = Class.forName(config.getClientClassName());
-
+            clientClass = Class.forName(clientClassName);
         } catch (ClassNotFoundException e) {
             throw new RuntimeException("create client <" + config.getClientClassName() + "> error", e);
         }
         Enhancer enhancer = new Enhancer();
         enhancer.setSuperclass(clientClass);
         enhancer.setCallback(ACCESSOR);
-        return (BaseClient) enhancer.create();
+        ServerAccessor.addClient(clientClass, config.getServerUrl());
+        return clientClass.cast(enhancer.create());
     }
 }
