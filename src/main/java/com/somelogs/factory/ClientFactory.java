@@ -29,7 +29,7 @@ public class ClientFactory {
         try {
             clientClass = Class.forName(clientClassName);
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException("create client <" + config.getClientClassName() + "> error", e);
+            throw new RuntimeException("create client [" + config.getClientClassName() + "] error", e);
         }
         Enhancer enhancer = new Enhancer();
         enhancer.setSuperclass(clientClass);

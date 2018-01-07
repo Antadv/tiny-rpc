@@ -62,7 +62,7 @@ public class ServerAccessor implements MethodInterceptor {
         Preconditions.checkNotNull(client, "client must be not null");
         Preconditions.checkState(client.isInterface(), "client must be interface");
         Preconditions.checkArgument(StringUtils.isNotBlank(serverUrl), "server url can't be empty");
-        LOGGER.info("add client[{}] to map", client.getName());
+        LOGGER.info("add client [{}] to map", client.getName());
         clientServerMap.put(client, serverUrl);
     }
 
