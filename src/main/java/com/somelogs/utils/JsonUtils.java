@@ -48,7 +48,7 @@ public class JsonUtils {
         }
     }
 
-    public static <T>T readValue(String json, Type genericType) {
+    public static <T> T readValue(String json, Type genericType) {
         try {
             return mapper.readValue(json, TypeFactory.defaultInstance().constructType(genericType));
         } catch (Exception e) {
