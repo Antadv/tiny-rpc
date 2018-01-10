@@ -8,7 +8,7 @@ package com.somelogs.client;
 public class ClientConfig {
 
     /**
-     * qualified name of the specified client class
+     * full qualified name of the specified client class
      */
     private String clientClassName;
 
