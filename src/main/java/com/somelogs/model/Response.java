@@ -2,6 +2,8 @@ package com.somelogs.model;
 
 import lombok.Data;
 
+import java.util.Objects;
+
 /**
  * response
  *
@@ -28,5 +30,9 @@ public class Response<T> {
     public Response() {
         this.code = ResponseStatus.SUCCESS.getCode();
         this.message = ResponseStatus.SUCCESS.getMessage();
+    }
+
+    public Boolean isSuccess() {
+        return Objects.equals(code, ResponseStatus.SUCCESS.getCode());
     }
 }
