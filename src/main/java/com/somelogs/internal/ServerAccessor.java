@@ -15,8 +15,6 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * server accessor
@@ -42,15 +40,9 @@ public class ServerAccessor implements MethodInterceptor {
      *
      * @return single ServerAccessor instance
      */
-    public static ServerAccessor singleInstance() {
-        Lock lock = new ReentrantLock();
-        lock.lock();
-        try {
-            if (INSTANCE == null) {
-                INSTANCE = new ServerAccessor();
-            }
-        } finally {
-            lock.unlock();
+    public static synchronized ServerAccessor singleInstance() {
+        if (INSTANCE == null) {
+            INSTANCE = new ServerAccessor();
         }
         return INSTANCE;
     }
@@ -81,7 +73,7 @@ public class ServerAccessor implements MethodInterceptor {
         try {
             String requestUrl = clientServerMap.get(o.getClass().getInterfaces()[0])
                                 + typeAnnotation.url() + methodAnnotation.url();
-            LOGGER.info("Server accessor request url:" + requestUrl);
+            LOGGER.info("Server accessor request url:{}", requestUrl);
             String responseJson = HttpUtils.postJson(requestUrl, postBody);
             response = JsonUtils.readValue(responseJson, method.getGenericReturnType());
         } catch (Exception e) {

@@ -19,7 +19,8 @@ public class ClientFactory {
     private ClientFactory() {}
 
     public static Object create(ClientConfig config) {
-        Preconditions.checkNotNull(config, "create client config is null");
+        Preconditions.checkNotNull(config,
+                "create client config is null");
         Preconditions.checkArgument(StringUtils.isNotBlank(config.getClientClassName()),
                 "class qualified name is blank when creating client");
         Preconditions.checkArgument(StringUtils.isNotBlank(config.getServerUrl()),
