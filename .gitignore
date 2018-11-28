@@ -36,6 +36,8 @@ buildNumber.properties
 *.iml
 .project
 .settings/
+.factorypath
+.classpath
 
 ## Directory-based project format:
 .idea/
