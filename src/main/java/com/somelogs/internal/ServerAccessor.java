@@ -68,7 +68,7 @@ public class ServerAccessor implements MethodInterceptor {
             return methodProxy.invokeSuper(o, objects);
         }
         RequestRoute typeAnnotation = method.getDeclaringClass().getAnnotation(RequestRoute.class);
-        String postBody = JsonUtils.object2JSONString(objects[0]);
+        String postBody = JsonUtils.writeValueAsString(objects[0]);
         Response response;
         try {
             String requestUrl = clientServerMap.get(o.getClass().getInterfaces()[0])
@@ -77,7 +77,7 @@ public class ServerAccessor implements MethodInterceptor {
             String responseJson = HttpUtils.postJson(requestUrl, postBody);
             response = JsonUtils.readValue(responseJson, method.getGenericReturnType());
         } catch (Exception e) {
-            //LOGGER.error("Server accessor request error", e);
+            LOGGER.error("Server accessor request error", e);
             response = new Response<>();
             response.setCode(ResponseStatus.INTERNAL_SERVER_ERROR.getCode());
             response.setMessage(ResponseStatus.INTERNAL_SERVER_ERROR.getMessage());

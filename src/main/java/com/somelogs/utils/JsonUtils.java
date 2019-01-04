@@ -1,7 +1,11 @@
 package com.somelogs.utils;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 
 import java.lang.reflect.Type;
@@ -15,12 +19,17 @@ public class JsonUtils {
 
     private JsonUtils() {}
 
-    private static ObjectMapper mapper = new ObjectMapper();
+    private static ObjectMapper mapper;
+    static {
+        mapper = new ObjectMapper();
+        mapper.setPropertyNamingStrategy(PropertyNamingStrategy.LOWER_CAMEL_CASE);
+        mapper.setSerializationInclusion(JsonInclude.Include.ALWAYS);
+        // disabled features:
+        mapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+        mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+    }
 
-
-    /**********************Serialize**********************/
-
-    public static String object2JSONString(Object obj) {
+    public static String writeValueAsString(Object obj) {
         try {
             return mapper.writeValueAsString(obj);
         } catch (Exception e) {
@@ -28,18 +37,9 @@ public class JsonUtils {
         }
     }
 
-
-    /**********************Deserialize**********************/
-
-    @Deprecated
-    public static <T> T readValue(String json, Class<T> clazz) {
-        try {
-            return mapper.readValue(json, clazz);
-        } catch (Exception e) {
-            throw new RuntimeException("Deserialize from JSON failed.", e);
-        }
-    }
-
+    /**
+     * 用于具体泛型 readValue(json, new TypeReference<Map<String, Integer>>)
+     */
     public static <T> T readValue(String json, TypeReference<T> typeReference) {
         try {
             return mapper.readValue(json, typeReference);
@@ -48,7 +48,10 @@ public class JsonUtils {
         }
     }
 
-    public static <T> T readValue(String json, Type genericType) {
+    /**
+     * 用于泛型，反射时 method.getGenericReturnType()
+     */
+    public static <T>T readValue(String json, Type genericType) {
         try {
             return mapper.readValue(json, TypeFactory.defaultInstance().constructType(genericType));
         } catch (Exception e) {
