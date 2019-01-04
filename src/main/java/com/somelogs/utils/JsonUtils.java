@@ -15,7 +15,7 @@ import java.lang.reflect.Type;
  *
  * @author LBG - 2017/12/13 0013
  */
-public class JsonUtils {
+public final class JsonUtils {
 
     private JsonUtils() {}
 
